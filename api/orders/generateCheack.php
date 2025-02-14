@@ -14,9 +14,11 @@ use Dompdf\Options;
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     $orderID = $_GET['id'];
 
-    $orderQuery = "SELECT o.id, o.order_date, o.total as orderTotal, c.name as clientName
+    $orderQuery = "SELECT o.id, o.order_date, o.total as orderTotal, c.name as clientName, 
+    a.name as adminName
     FROM orders o
     JOIN clients c ON o.client_id = c.id
+    JOIN users a ON o.admin = a.id
     WHERE o.id = ?";
 
     $stmt = $DB->prepare($orderQuery);
@@ -62,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         </div>
         <div class="order-info">
             <p>Клиент: ' . $orderData['clientName'] . '</p>
+            <p>Администратор: ' . $orderData['adminName'] . '</p>
         </div>
         <table>
             <tr>
