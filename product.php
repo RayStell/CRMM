@@ -12,14 +12,14 @@ AuthCheck('', 'login.php');
 
 require_once 'api/helpers/InputDefaultValue.php';
 
-require 'vendor/autoload.php';
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
-$qrCode = new QrCode('ИДИ НА ХУЙ');
-$writer = new PngWriter();
-$result = $writer->write($qrCode);
-header('Content-Type: '.$result->getMimeType());
-echo $result->getString();
+// require 'vendor/autoload.php';
+// use Endroid\QrCode\QrCode;
+// use Endroid\QrCode\Writer\PngWriter;
+// $qrCode = new QrCode('ИДИ НА ХУЙ');
+// $writer = new PngWriter();
+// $result = $writer->write($qrCode);
+// header('Content-Type: '.$result->getMimeType());
+// echo $result->getString();
 
 /**
  * 1.фильрация / сортировка
