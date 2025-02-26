@@ -81,17 +81,29 @@ AuthCheck('', 'login.php');
                     $maxPage = ceil($countClients / $maxClients);
                     $minPage = 1;
 
+                    // Build pagination URL with preserved search parameters
+                    $searchParams = '';
+                    if (isset($_GET['search_name'])) {
+                        $searchParams .= '&search_name=' . urlencode($_GET['search_name']);
+                    }
+                    if (isset($_GET['search'])) {
+                        $searchParams .= '&search=' . urlencode($_GET['search']);
+                    }
+                    if (isset($_GET['sort'])) {
+                        $searchParams .= '&sort=' . urlencode($_GET['sort']);
+                    }
+
                     // Normalize currentPage
                     if ($currentPage < $minPage || !is_numeric($currentPage)) {
                         $currentPage = $minPage;
-                        // Redirect to normalized URL
-                        header("Location: ?page=$currentPage");
+                        // Redirect to normalized URL with preserved parameters
+                        header("Location: ?page=$currentPage" . $searchParams);
                         exit;
                     }
                     if ($currentPage > $maxPage) {
                         $currentPage = $maxPage;
-                        // Redirect to normalized URL
-                        header("Location: ?page=$currentPage");
+                        // Redirect to normalized URL with preserved parameters
+                        header("Location: ?page=$currentPage" . $searchParams);
                         exit;
                     }
 
@@ -100,13 +112,13 @@ AuthCheck('', 'login.php');
                     // Show prev button only if not on first page
                     if ($currentPage > $minPage) {
                         $Prev = $currentPage - 1;
-                        echo "<a href='?page=$Prev'><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
+                        echo "<a href='?page=$Prev" . $searchParams . "'><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
                     }
 
                     // Show next button only if not on last page
                     if ($currentPage < $maxPage) {
                         $Next = $currentPage + 1;
-                        echo "<a href='?page=$Next'><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
+                        echo "<a href='?page=$Next" . $searchParams . "'><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
                     }
                 ?>
                 <table>
