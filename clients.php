@@ -10,10 +10,10 @@ if (isset($_GET['do']) && $_GET['do'] === 'logout') {
 }
 
 require_once 'api/auth/AuthCheck.php';
+require_once 'api/helpers/InputDefaultValue.php';
+require_once 'api/clients/ClientsSearch.php';
 
 AuthCheck('', 'login.php');
-
-require_once 'api/helpers/InputDefaultValue.php';
 
 ?>
 
@@ -70,6 +70,35 @@ require_once 'api/helpers/InputDefaultValue.php';
             <div class="container">
                 <h2 class="main__clients__title">Список клиентов</h2>
                 <button class="main__clients__add" onclick="MicroModal.show('add-modal')"><i class="fa fa-plus-circle"></i></button>
+                <?php
+                    $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                    $maxClients = 5;
+
+                    $countClients = $DB->query("
+                    SELECT COUNT(*) as count FROM clients")
+                    ->fetchAll()[0]['count'];
+
+                    $maxPage = ceil($countClients / $maxClients);
+                    $minPage = 1;
+
+                    // Ensure currentPage is within valid range
+                    if ($currentPage < $minPage) $currentPage = $minPage;
+                    if ($currentPage > $maxPage) $currentPage = $maxPage;
+
+                    echo "<p>$currentPage / $maxPage</p>";
+                    
+                    // Show prev button only if not on first page
+                    if ($currentPage > $minPage) {
+                        $Prev = $currentPage - 1;
+                        echo "<a href='?page=$Prev'><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
+                    }
+
+                    // Show next button only if not on last page
+                    if ($currentPage < $maxPage) {
+                        $Next = $currentPage + 1;
+                        echo "<a href='?page=$Next'><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
+                    }
+                ?>
                 <table>
                     <thead>
                         <th>ИД</th>
