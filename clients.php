@@ -81,9 +81,19 @@ AuthCheck('', 'login.php');
                     $maxPage = ceil($countClients / $maxClients);
                     $minPage = 1;
 
-                    // Ensure currentPage is within valid range
-                    if ($currentPage < $minPage) $currentPage = $minPage;
-                    if ($currentPage > $maxPage) $currentPage = $maxPage;
+                    // Normalize currentPage
+                    if ($currentPage < $minPage || !is_numeric($currentPage)) {
+                        $currentPage = $minPage;
+                        // Redirect to normalized URL
+                        header("Location: ?page=$currentPage");
+                        exit;
+                    }
+                    if ($currentPage > $maxPage) {
+                        $currentPage = $maxPage;
+                        // Redirect to normalized URL
+                        header("Location: ?page=$currentPage");
+                        exit;
+                    }
 
                     echo "<p>$currentPage / $maxPage</p>";
                     
