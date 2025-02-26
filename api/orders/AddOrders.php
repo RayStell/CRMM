@@ -58,10 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
-    $token = $_SESSION['token'];
-    $adminID = $DB->query(
-        "SELECT id FROM users WHERE token = '$token'"
-    )->fetch(PDO::FETCH_ASSOC)[0]['id'];
+    $stmt = $DB->prepare("SELECT id FROM users WHERE token = ?");
+    $stmt->execute([$_SESSION['token']]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $adminID = $result['id'];
 
     // 1. создание заказа с полями
     $orders = [
