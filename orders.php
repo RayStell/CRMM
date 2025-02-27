@@ -15,26 +15,18 @@ AuthCheck('', 'login.php');
 
 require_once 'api/helpers/InputDefaultValue.php';
 
-// Обработка состояния чекбокса
-if (isset($_GET["show_inactive"])) {
-    $_SESSION["show_inactive"] = true;
-} else if (isset($_GET["search"]) || isset($_GET["sort"])) {
-    // Убираем проверку $_GET["page"] чтобы пагинация не сбрасывала чекбокс
-    $_SESSION["show_inactive"] = false;
+// Обработка состояния статуса заказов
+if (isset($_GET["search_status"])) {
+    $_SESSION["search_status"] = $_GET["search_status"];
+} else if (!isset($_SESSION["search_status"])) {
+    $_SESSION["search_status"] = "0"; // По умолчанию показываем все заказы
 }
 
 // Обработка кнопки сброса
 if (isset($_GET['reset'])) {
-    $_SESSION["order_status"] = "active"; // По умолчанию показываем активные
+    $_SESSION["search_status"] = "0"; // По умолчанию показываем все заказы
     header("Location: orders.php");
     exit;
-}
-
-// Обработка состояния статуса заказов
-if (isset($_GET["order_status"])) {
-    $_SESSION["order_status"] = $_GET["order_status"];
-} else if (!isset($_SESSION["order_status"])) {
-    $_SESSION["order_status"] = "active"; // По умолчанию показываем активные
 }
 
 // Добавляем параметры в URL пагинации
@@ -48,9 +40,8 @@ if (isset($_GET['search'])) {
 if (isset($_GET['sort'])) {
     $searchParams .= '&sort=' . urlencode($_GET['sort']);
 }
-// Добавляем параметр статуса заказов в URL
-if (isset($_SESSION['order_status'])) {
-    $searchParams .= '&order_status=' . urlencode($_SESSION['order_status']);
+if (isset($_SESSION['search_status'])) {
+    $searchParams .= '&search_status=' . urlencode($_SESSION['search_status']);
 }
 
 ?>
@@ -105,9 +96,10 @@ if (isset($_SESSION['order_status'])) {
                     </select>
                     <div class="filter-controls">
                         <label>
-                            <select class="main__select" name="order_status" id="order_status">
-                                <option value="1" <?php echo ($_SESSION["order_status"] === "1" ? "selected" : ""); ?>>Активные заказы</option>
-                                <option value="0" <?php echo ($_SESSION["order_status"] === "0" ? "selected" : ""); ?>>Неактивные заказы</option>
+                            <select class="main__select" name="search_status" id="search_status">
+                                <option value="0" <?php echo ($_SESSION["search_status"] === "0" ? "selected" : ""); ?>>Все заказы</option>
+                                <option value="1" <?php echo ($_SESSION["search_status"] === "1" ? "selected" : ""); ?>>Активные заказы</option>
+                                <option value="2" <?php echo ($_SESSION["search_status"] === "2" ? "selected" : ""); ?>>Неактивные заказы</option>
                             </select>
                         </label>
                     </div>
@@ -141,30 +133,39 @@ if (isset($_SESSION['order_status'])) {
                             require_once 'api/orders/OutputOrders.php';
                             require_once 'api/orders/OrdersSearch.php';
 
-                            $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                            $maxOrders = 5;
-
+                            // Подсчет общего количества записей с учетом фильтров
                             $search = isset($_GET['search']) ? strtolower($_GET['search']) : '';
-
-                            // Add status condition based on show_inactive checkbox
-                            $statusCondition = "";
-                            if (!isset($_SESSION['show_inactive']) || !$_SESSION['show_inactive']) {
-                                $statusCondition = "AND orders.status = 1";
+                            $whereClause = "";
+                            if (!empty($search)) {
+                                $whereClause = "WHERE (LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%')";
                             }
 
-                            $countOrders = $DB->query("
-                            SELECT COUNT(DISTINCT orders.id) as count 
-                            FROM orders 
-                            JOIN clients ON orders.client_id = clients.id 
-                            JOIN order_items ON orders.id = order_items.order_id 
-                            JOIN products ON order_items.product_id = products.id 
-                            WHERE (LOWER(clients.name) LIKE '%$search%' 
-                            OR LOWER(products.name) LIKE '%$search%')
-                            $statusCondition
-                            ")->fetchAll()[0]['count'];
+                            // Добавляем условие статуса для подсчета
+                            if ($_SESSION["search_status"] == '1') {
+                                $whereClause = $whereClause ? $whereClause . " AND orders.status = 1" : "WHERE orders.status = 1";
+                            } elseif ($_SESSION["search_status"] == '2') {
+                                $whereClause = $whereClause ? $whereClause . " AND orders.status = 0" : "WHERE orders.status = 0";
+                            }
 
-                            $maxPage = ceil($countOrders / $maxOrders);
-                            $minPage = 1;
+                            $countQuery = "SELECT COUNT(DISTINCT orders.id) as count 
+                                           FROM orders 
+                                           JOIN clients ON orders.client_id = clients.id 
+                                           JOIN order_items ON orders.id = order_items.order_id 
+                                           JOIN products ON order_items.product_id = products.id 
+                                           $whereClause";
+
+                            $countOrders = $DB->query($countQuery)->fetchAll()[0]['count'];
+
+                            $per_page = 5; // Количество записей на странице
+                            $maxPage = ceil($countOrders / $per_page);
+                            $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+                            // Проверка и корректировка текущей страницы
+                            if ($currentPage < 1) {
+                                $currentPage = 1;
+                            } elseif ($currentPage > $maxPage) {
+                                $currentPage = $maxPage;
+                            }
 
                             // Build pagination URL with preserved search parameters
                             $searchParams = '';
@@ -178,40 +179,28 @@ if (isset($_SESSION['order_status'])) {
                                 $searchParams .= '&sort=' . urlencode($_GET['sort']);
                             }
 
-                            // Normalize currentPage
-                            if ($currentPage < $minPage || !is_numeric($currentPage)) {
-                                $currentPage = $minPage;
-                                header("Location: ?page=$currentPage" . $searchParams);
-                                exit;
-                            }
-                            if ($currentPage > $maxPage) {
-                                $currentPage = $maxPage;
-                                header("Location: ?page=$currentPage" . $searchParams);
-                                exit;
-                            }
-                            
                             // Wrap pagination in container
                             echo "<div class='pagination-container'>";
                             
-                            // Always show prev button, but disable if on first page
-                            $prevDisabled = ($currentPage <= $minPage) ? " disabled" : "";
-                            $Prev = $currentPage - 1;
-                            echo "<a href='?page=$Prev" . $searchParams . "'$prevDisabled><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
+                            // Кнопка "Предыдущая"
+                            $prevDisabled = ($currentPage <= 1) ? " disabled" : "";
+                            $prevPage = $currentPage - 1;
+                            echo "<a href='?page=$prevPage$searchParams'$prevDisabled><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
 
-                            // Show numbered pagination buttons
+                            // Номера страниц
                             echo "<div class='pagination'>";
                             for ($i = 1; $i <= $maxPage; $i++) {
                                 $activeClass = ($i === $currentPage) ? " class='active'" : "";
-                                echo "<a href='?page=$i" . $searchParams . "'$activeClass>$i</a>";
+                                echo "<a href='?page=$i$searchParams'$activeClass>$i</a>";
                             }
                             echo "</div>";
 
-                            // Always show next button, but disable if on last page
+                            // Кнопка "Следующая"
                             $nextDisabled = ($currentPage >= $maxPage) ? " disabled" : "";
-                            $Next = $currentPage + 1;
-                            echo "<a href='?page=$Next" . $searchParams . "'$nextDisabled><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
+                            $nextPage = $currentPage + 1;
+                            echo "<a href='?page=$nextPage$searchParams'$nextDisabled><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
 
-                            echo "</div>"; // Close pagination-container
+                            echo "</div>";
 
                             $orders = OrdersSearch($_GET, $DB);
                             OutputOrders($orders);

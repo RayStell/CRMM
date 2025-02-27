@@ -6,16 +6,8 @@ function convertDate($date) {
 // добавить отображение имени администратора
 
 function OutputOrders($orders) {
-    $show_inactive = isset($_GET['show_inactive']);
-    
     foreach ($orders as $key => $order) {
-        $status = isset($order['status']) ? ($order['status'] == 1 ? '1' : '0') : 'Хз';
-        
-        // Пропускаем неактивные заказы, если чекбокс не отмечен
-        if (!$show_inactive && $status === '0') {
-            continue;
-        }
-        
+        $status = isset($order['status']) ? $order['status'] : 'Хз';
         $fullname = $order['name'] ?? 'Неизвестно';
         $order_date = $order['order_date'] ? date('Y-m-d H:i:s', strtotime($order['order_date'])) : 'Неизвестно';
         $total_price = $order['total'] ?? '0';

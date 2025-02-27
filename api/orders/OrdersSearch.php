@@ -6,7 +6,7 @@ function OrdersSearch($params, $DB) {
     $sort = isset($params['sort']) ? $params['sort'] : '0';
     //цена и количество
     $search_name = isset($params['search_name']) ? $params['search_name'] : '0';
-    $search_status = isset($params['search_status']) ? $params['search_status'] : '0';
+    $search_status = isset($_SESSION['search_status']) ? $_SESSION['search_status'] : '0';
     $search = strtolower($search);
 
     $orderBy = '';
@@ -21,13 +21,19 @@ function OrdersSearch($params, $DB) {
     $per_page = 5; // Количество записей на странице
     $offset = ($page - 1) * $per_page;
 
-    // Добавляем условие WHERE для фильтрации по статусу
-    $whereClause = "WHERE (LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%')";
-    if ($search_status == '1') {  // Активные заказы
-        $whereClause .= " AND orders.status = '1'";
-    } elseif ($search_status == '2') {  // Неактивные заказы
-        $whereClause .= " AND orders.status = '0'";
+    // Формируем WHERE с учетом поиска только если поисковая строка не пустая
+    $whereClause = "";
+    if (!empty($search)) {
+        $whereClause = "WHERE (LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%')";
     }
+
+    // Добавляем условие статуса
+    if ($search_status == '2') {  // Неактивные заказы (status = 0)
+        $whereClause = $whereClause ? $whereClause . " AND orders.status = 0" : "WHERE orders.status = 0";
+    } elseif ($search_status == '1') {  // Активные заказы (status = 1)
+        $whereClause = $whereClause ? $whereClause . " AND orders.status = 1" : "WHERE orders.status = 1";
+    }
+    // Для значения "0" (Все заказы) дополнительные условия не добавляются
 
     $orders = $DB->query(
     "SELECT
