@@ -2,25 +2,66 @@
 
 function ProductSearch($params, $DB) {
     $search = isset($params['search']) ? $params['search'] : '';
-    //по умолчанию и убыванию
-    $sort = isset($params['sort']) ? $params['sort'] : '0';
-    //цена и количество
-    $search_name = isset($params['search_name']) ? $params['search_name'] : '0';
+    $search_name = isset($params['search_name']) ? $params['search_name'] : '';
+    $sort = isset($params['sort']) ? $params['sort'] : '';
+    
+    // Получаем номер текущей страницы, по умолчанию 1
+    $currentPage = isset($params['page']) ? (int)$params['page'] : 1;
+    $itemsPerPage = 5; // Количество товаров на странице
+    $offset = ($currentPage - 1) * $itemsPerPage;
 
-    $search = strtolower($search);
+    $sql = "SELECT * FROM products";
+    $params_array = array();
 
-    $orderBy = '';
-    if ($sort == '1') {
-        $orderBy = "ORDER BY $search_name ASC";
-    } elseif ($sort == '2') {
-        $orderBy = "ORDER BY $search_name DESC";
+    // Добавляем условие WHERE только если есть поисковый запрос
+    if (!empty($search)) {
+        $sql .= " WHERE ";
+        if ($search_name === 'name') {
+            $sql .= "name LIKE :search";
+        } else if ($search_name === 'price') {
+            $sql .= "price LIKE :search";
+        } else if ($search_name === 'stock') {
+            $sql .= "stock LIKE :search";
+        }
+        $params_array[':search'] = "%$search%";
     }
 
-    $product = $DB->query(
-        "SELECT * FROM products WHERE LOWER(name) LIKE '%$search%'$orderBy"
-    )->fetchAll();
+    if ($sort === '1') {
+        if ($search_name === 'name') {
+            $sql .= " ORDER BY name ASC";
+        } else if ($search_name === 'price') {
+            $sql .= " ORDER BY price ASC";
+        } else if ($search_name === 'stock') {
+            $sql .= " ORDER BY stock ASC";
+        }
+    } else if ($sort === '2') {
+        if ($search_name === 'name') {
+            $sql .= " ORDER BY name DESC";
+        } else if ($search_name === 'price') {
+            $sql .= " ORDER BY price DESC";
+        } else if ($search_name === 'stock') {
+            $sql .= " ORDER BY stock DESC";
+        }
+    }
 
-    return $product;
+    // Добавляем LIMIT и OFFSET для пагинации
+    $sql .= " LIMIT :limit OFFSET :offset";
+    $params_array[':limit'] = $itemsPerPage;
+    $params_array[':offset'] = $offset;
+
+    $stmt = $DB->prepare($sql);
+
+    // Привязываем все параметры
+    foreach($params_array as $key => &$val) {
+        if($key === ':limit' || $key === ':offset') {
+            $stmt->bindValue($key, $val, PDO::PARAM_INT);
+        } else {
+            $stmt->bindValue($key, $val);
+        }
+    }
+
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
 
 ?>

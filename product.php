@@ -100,8 +100,66 @@ require_once 'api/helpers/InputDefaultValue.php';
                         require 'api/DB.php';
                         require_once('api/product/ProductSearch.php');
                         require_once('api/product/OutputProduct.php');
+
+                        $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                        $maxProducts = 5;
+
+                        $countProducts = $DB->query("SELECT COUNT(*) as count FROM products")->fetchAll()[0]['count'];
+
+                        // Build search parameters string
+                        $searchParams = '';
+                        if (isset($_GET['search_name'])) {
+                            $searchParams .= '&search_name=' . urlencode($_GET['search_name']);
+                        }
+                        if (isset($_GET['search'])) {
+                            $searchParams .= '&search=' . urlencode($_GET['search']);
+                        }
+                        if (isset($_GET['sort'])) {
+                            $searchParams .= '&sort=' . urlencode($_GET['sort']);
+                        }
+
+                        $maxPage = ceil($countProducts / $maxProducts);
+                        $minPage = 1;
+
+                        // Normalize currentPage
+                        if ($currentPage < $minPage || !is_numeric($currentPage)) {
+                            $currentPage = $minPage;
+                            header("Location: ?page=$currentPage" . $searchParams);
+                            exit;
+                        }
+                        if ($currentPage > $maxPage) {
+                            $currentPage = $maxPage;
+                            header("Location: ?page=$currentPage" . $searchParams);
+                            exit;
+                        }
+
+                        // Wrap pagination in container
+                        echo "<div class='pagination-container'>";
+                        
+                        // Prev button with link
+                        $prevPage = $currentPage - 1;
+                        $prevDisabled = ($currentPage <= $minPage) ? " disabled" : "";
+                        echo "<a href='?page=$prevPage" . $searchParams . "'$prevDisabled><i class='fa fa-arrow-left'></i></a>";
+
+                        // Numbered pagination
+                        echo "<div class='pagination'>";
+                        for ($i = 1; $i <= $maxPage; $i++) {
+                            if ($i == $currentPage) {
+                                echo "<span class='active'>$i</span>";
+                            } else {
+                                echo "<a href='?page=$i" . $searchParams . "'>$i</a>";
+                            }
+                        }
+                        echo "</div>";
+
+                        // Next button with link
+                        $nextPage = $currentPage + 1;
+                        $nextDisabled = ($currentPage >= $maxPage) ? " disabled" : "";
+                        echo "<a href='?page=$nextPage" . $searchParams . "'$nextDisabled><i class='fa fa-arrow-right'></i></a>";
+
+                        echo "</div>";
+
                         $products = ProductSearch($_GET, $DB);
-                    
                         OutputProducts($products);
                         ?>
                         <!-- <tr>

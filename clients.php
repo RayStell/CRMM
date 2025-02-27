@@ -96,30 +96,37 @@ AuthCheck('', 'login.php');
                     // Normalize currentPage
                     if ($currentPage < $minPage || !is_numeric($currentPage)) {
                         $currentPage = $minPage;
-                        // Redirect to normalized URL with preserved parameters
                         header("Location: ?page=$currentPage" . $searchParams);
                         exit;
                     }
                     if ($currentPage > $maxPage) {
                         $currentPage = $maxPage;
-                        // Redirect to normalized URL with preserved parameters
                         header("Location: ?page=$currentPage" . $searchParams);
                         exit;
                     }
-
-                    echo "<p>$currentPage / $maxPage</p>";
                     
-                    // Show prev button only if not on first page
-                    if ($currentPage > $minPage) {
-                        $Prev = $currentPage - 1;
-                        echo "<a href='?page=$Prev" . $searchParams . "'><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
-                    }
+                    // Wrap pagination in container
+                    echo "<div class='pagination-container'>";
+                    
+                    // Always show prev button, but disable if on first page
+                    $prevDisabled = ($currentPage <= $minPage) ? " disabled" : "";
+                    $Prev = $currentPage - 1;
+                    echo "<a href='?page=$Prev" . $searchParams . "'$prevDisabled><i class='fa fa-arrow-left' aria-hidden='true'></i></a>";
 
-                    // Show next button only if not on last page
-                    if ($currentPage < $maxPage) {
-                        $Next = $currentPage + 1;
-                        echo "<a href='?page=$Next" . $searchParams . "'><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
+                    // Show numbered pagination buttons
+                    echo "<div class='pagination'>";
+                    for ($i = 1; $i <= $maxPage; $i++) {
+                        $activeClass = ($i === $currentPage) ? " class='active'" : "";
+                        echo "<a href='?page=$i" . $searchParams . "'$activeClass>$i</a>";
                     }
+                    echo "</div>";
+
+                    // Always show next button, but disable if on last page
+                    $nextDisabled = ($currentPage >= $maxPage) ? " disabled" : "";
+                    $Next = $currentPage + 1;
+                    echo "<a href='?page=$Next" . $searchParams . "'$nextDisabled><i class='fa fa-arrow-right' aria-hidden='true'></i></a>";
+
+                    echo "</div>"; // Close pagination-container
                 ?>
                 <table>
                     <thead>

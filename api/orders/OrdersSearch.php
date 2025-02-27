@@ -16,6 +16,19 @@ function OrdersSearch($params, $DB) {
         $orderBy = "ORDER BY $search_name DESC";
     }
 
+    // Добавляем параметр для текущей страницы
+    $page = isset($params['page']) ? (int)$params['page'] : 1;
+    $per_page = 5; // Количество записей на странице
+    $offset = ($page - 1) * $per_page;
+
+    // Добавляем условие WHERE для фильтрации по статусу
+    $whereClause = "WHERE (LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%')";
+    if ($search_status == '1') {  // Активные заказы
+        $whereClause .= " AND orders.status = '1'";
+    } elseif ($search_status == '2') {  // Неактивные заказы
+        $whereClause .= " AND orders.status = '0'";
+    }
+
     $orders = $DB->query(
     "SELECT
         orders.id,
@@ -36,10 +49,11 @@ function OrdersSearch($params, $DB) {
         order_items ON orders.id = order_items.order_id
     JOIN
         products ON order_items.product_id = products.id
-    WHERE LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%'
+    " . $whereClause . "
     GROUP BY
         orders.id, clients.name, orders.order_date, orders.total, orders.status
-    " . $orderBy)->fetchAll();
+    " . $orderBy . "
+    LIMIT $per_page OFFSET $offset")->fetchAll();
 
     return $orders;
 }
