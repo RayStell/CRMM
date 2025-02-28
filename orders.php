@@ -19,12 +19,12 @@ require_once 'api/helpers/InputDefaultValue.php';
 if (isset($_GET["search_status"])) {
     $_SESSION["search_status"] = $_GET["search_status"];
 } else if (!isset($_SESSION["search_status"])) {
-    $_SESSION["search_status"] = "0"; // По умолчанию показываем все заказы
+    $_SESSION["search_status"] = "all"; // По умолчанию показываем все заказы
 }
 
 // Обработка кнопки сброса
 if (isset($_GET['reset'])) {
-    $_SESSION["search_status"] = "0"; // По умолчанию показываем все заказы
+    $_SESSION["search_status"] = "all"; // По умолчанию показываем все заказы
     header("Location: orders.php");
     exit;
 }
@@ -97,9 +97,9 @@ if (isset($_SESSION['search_status'])) {
                     <div class="filter-controls">
                         <label>
                             <select class="main__select" name="search_status" id="search_status">
-                                <option value="0" <?php echo ($_SESSION["search_status"] === "0" ? "selected" : ""); ?>>Все заказы</option>
+                                <option value="all" <?php echo ($_SESSION["search_status"] === "all" ? "selected" : ""); ?>>Все заказы</option>
                                 <option value="1" <?php echo ($_SESSION["search_status"] === "1" ? "selected" : ""); ?>>Активные заказы</option>
-                                <option value="2" <?php echo ($_SESSION["search_status"] === "2" ? "selected" : ""); ?>>Неактивные заказы</option>
+                                <option value="0" <?php echo ($_SESSION["search_status"] === "0" ? "selected" : ""); ?>>Неактивные заказы</option>
                             </select>
                         </label>
                     </div>
@@ -142,9 +142,9 @@ if (isset($_SESSION['search_status'])) {
 
                             // Добавляем условие статуса для подсчета
                             if ($_SESSION["search_status"] == '1') {
-                                $whereClause = $whereClause ? $whereClause . " AND orders.status = 1" : "WHERE orders.status = 1";
-                            } elseif ($_SESSION["search_status"] == '2') {
-                                $whereClause = $whereClause ? $whereClause . " AND orders.status = 0" : "WHERE orders.status = 0";
+                                $whereClause = $whereClause ? $whereClause . " AND orders.status = '1'" : "WHERE orders.status = 1";
+                            } elseif ($_SESSION["search_status"] == '0') {
+                                $whereClause = $whereClause ? $whereClause . " AND orders.status = '0'" : "WHERE orders.status = 0";
                             }
 
                             $countQuery = "SELECT COUNT(DISTINCT orders.id) as count 

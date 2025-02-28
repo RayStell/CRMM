@@ -6,7 +6,7 @@ function OrdersSearch($params, $DB) {
     $sort = isset($params['sort']) ? $params['sort'] : '0';
     //цена и количество
     $search_name = isset($params['search_name']) ? $params['search_name'] : '0';
-    $search_status = isset($_SESSION['search_status']) ? $_SESSION['search_status'] : '0';
+    $search_status = isset($_SESSION['search_status']) ? $_SESSION['search_status'] : 'all';
     $search = strtolower($search);
 
     $orderBy = '';
@@ -28,11 +28,11 @@ function OrdersSearch($params, $DB) {
     }
 
     // Добавляем условие статуса
-    if ($search_status == '2') {  // Неактивные заказы (status = 0)
-        $whereClause = $whereClause ? $whereClause . " AND orders.status = 0" : "WHERE orders.status = 0";
+    if ($search_status == '0') {  // Неактивные заказы (status = 0)
+        $whereClause = $whereClause ? $whereClause . " AND orders.status = '0'" : "WHERE orders.status = '0'";
     } elseif ($search_status == '1') {  // Активные заказы (status = 1)
-        $whereClause = $whereClause ? $whereClause . " AND orders.status = 1" : "WHERE orders.status = 1";
-    }
+        $whereClause = $whereClause ? $whereClause . " AND orders.status = '1'" : "WHERE orders.status = '1'";
+    } 
     // Для значения "0" (Все заказы) дополнительные условия не добавляются
 
     $orders = $DB->query(
@@ -43,7 +43,10 @@ function OrdersSearch($params, $DB) {
         orders.total,
         GROUP_CONCAT(CONCAT(products.name,' ( ',order_items.quantity,'шт. : ',products.price,')') 
         SEPARATOR ', ') AS product_names,
-        orders.status,
+        CASE 
+            WHEN orders.status = '1' THEN 'Активный'
+            WHEN orders.status = '0' THEN 'Неактивный'
+        END AS status,
         users.name AS admin_name
     FROM
         orders
