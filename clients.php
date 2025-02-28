@@ -282,37 +282,50 @@ AuthCheck('', 'login.php');
             </div>
         </div>
     </div>
-
-    <div class="modal micromodal-slide
-        <?php
-        if (isset($_SESSION['clients_error']) && 
-        !empty($_SESSION['clients_error'])) {
-            echo 'open';
-        }
-        ?>
-    " id="error-modal" aria-hidden="true">
+    <!-- 
+    1. Продублировать модальное окно с ошибкой
+    2. Поменять $_SESSION -> $_GET
+    3. Поменять clients-errors - send-email
+    4. id на send-email-modal
+    5. В main добавить только вывод почты
+    6. Дописать сброс почты
+        
+    -->
+    <div class="modal micromodal-slide<?php
+        if (isset($_GET['send-email']) && !empty($_GET['send-email'])) {echo ' open';}?>
+    " id="send-email-modal" aria-hidden="true">
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
             <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
                 <header class="modal__header">
                     <h2 class="modal__title" id="modal-1-title">
-                        Ошибка!
+                        Отправка письма на почту!!!
                     </h2>   
                     <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                 </header>
                 <main class="modal__content" id="modal-1-content">
-                <?php
-                if (isset($_SESSION['clients_error'])
-                && !empty($_SESSION['clients_error'])) {
-                    echo $_SESSION['clients_error'];
-
-                    $_SESSION['clients_error'] = '';
-                }
-                ?>
+                <?php if (isset($_GET['send-email'])&& !empty($_GET['send-email'])) {echo $_GET['send-email'];}?>
                 </main>
             </div>
         </div>
     </div>
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
+    <script>
+    // Очищаем URL от параметра send-email при закрытии модального окна
+    document.querySelector('#send-email-modal .modal__close').addEventListener('click', function() {
+        let url = new URL(window.location.href);
+        url.searchParams.delete('send-email');
+        window.history.replaceState({}, '', url);
+    });
+
+    // Если модальное окно было открыто, очищаем URL после загрузки страницы
+    window.addEventListener('load', function() {
+        if (new URL(window.location.href).searchParams.has('send-email')) {
+            let url = new URL(window.location.href);
+            url.searchParams.delete('send-email');
+            window.history.replaceState({}, '', url);
+        }
+    });
+    </script>
 </body>
 </html>

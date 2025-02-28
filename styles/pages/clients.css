@@ -667,3 +667,16 @@
 .pagination a:hover:not(.active), .pagination-container > a:hover:not([disabled]) {
     background-color: #f5f5f5;
 }
+
+textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+td[data-email]:hover {
+    text-decoration: underline;
+    color: #007bff;
+}

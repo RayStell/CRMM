@@ -41,6 +41,14 @@ echo '<style>
 }
 </style>';
 
+function convertParams($params) {
+            $outputParams = [];
+            foreach ($params as $key => $value) {
+                $outputParams[] = $key . '=' . $value;
+            }
+            return implode('&', $outputParams);
+        }
+
 function OutputClients($clients) {
     foreach ($clients as $key => $client) {
         $id = $client['id'];
@@ -50,10 +58,15 @@ function OutputClients($clients) {
         $birthday = $client['birthday'];
         $created_at = $client['created_at'];
 
+        
+        $QueryParams = $_GET;
+        $QueryParams['send-email'] = $email;
+        $QueryParams = convertParams($QueryParams);
+
         echo "<tr>
                 <td>$id</td>
                 <td>$name</td>
-                <td>$email</td>
+                <td><a href='?$QueryParams'>$email</a></td>
                 <td>$phone</td>
                 <td>$birthday</td>
                 <td>$created_at</td>
