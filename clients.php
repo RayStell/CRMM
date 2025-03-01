@@ -282,15 +282,6 @@ AuthCheck('', 'login.php');
             </div>
         </div>
     </div>
-    <!-- 
-    1. Продублировать модальное окно с ошибкой
-    2. Поменять $_SESSION -> $_GET
-    3. Поменять clients-errors - send-email
-    4. id на send-email-modal
-    5. В main добавить только вывод почты
-    6. Дописать сброс почты
-        
-    -->
     <div class="modal micromodal-slide<?php
         if (isset($_GET['send-email']) && !empty($_GET['send-email'])) {echo ' open';}?>
     " id="send-email-modal" aria-hidden="true">
@@ -298,12 +289,35 @@ AuthCheck('', 'login.php');
             <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
                 <header class="modal__header">
                     <h2 class="modal__title" id="modal-1-title">
-                        Отправка письма на почту!!!
+                        Отправка письма
                     </h2>   
                     <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                 </header>
                 <main class="modal__content" id="modal-1-content">
-                <?php if (isset($_GET['send-email'])&& !empty($_GET['send-email'])) {echo $_GET['send-email'];}?>
+                    <form action="api/clients/SendEmail.php?email=<?php echo $_GET['send-email']; ?>" method="POST">
+                        <div class="modal__form-group">
+                            <label for="header">Обращение</label>
+                            <input type="text" id="header" name="header">
+                        </div>
+                        <div class="modal__form-group">
+                            <label for="main">Тело письма</label>
+                            <textarea id="main" name="main" rows="5"></textarea>
+                        </div>
+                        <div class="modal__form-group">
+                            <label for="footer">Футер</label>
+                            <input type="text" id="footer" name="footer">
+                        </div>
+                        <div class="modal__form-actions">
+                            <button type="submit" class="modal__btn modal__btn-primary">Отправить</button>
+                            <button type="button" class="modal__btn modal__btn-secondary" data-micromodal-close>Отменить</button>
+                        </div>
+                    </form>
+
+                    <?php 
+                    if (isset($_GET['send-email']) && !empty($_GET['send-email'])) {
+                        
+                    }
+                    ?>
                 </main>
             </div>
         </div>

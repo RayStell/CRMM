@@ -680,3 +680,89 @@ td[data-email]:hover {
     text-decoration: underline;
     color: #007bff;
 }
+
+/* Стили для модального окна отправки письма */
+#send-email-modal .modal__form {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#send-email-modal .modal__form-group {
+    margin-bottom: 1.5rem;
+}
+
+#send-email-modal .modal__form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+#send-email-modal .modal__form-group input,
+#send-email-modal .modal__form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+#send-email-modal .modal__form-group input:focus,
+#send-email-modal .modal__form-group textarea:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+    outline: none;
+}
+
+#send-email-modal .modal__form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+#send-email-modal .modal__form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+#send-email-modal .modal__btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#send-email-modal .modal__btn-primary {
+    background-color: #28a745;
+    color: white;
+}
+
+#send-email-modal .modal__btn-primary:hover {
+    background-color: #218838;
+}
+
+#send-email-modal .modal__btn-secondary {
+    background-color: #dc3545;
+    color: white;
+}
+
+#send-email-modal .modal__btn-secondary:hover {
+    background-color: #c82333;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 576px) {
+    #send-email-modal .modal__form-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    #send-email-modal .modal__btn {
+        width: 100%;
+    }
+}
