@@ -297,27 +297,30 @@ AuthCheck('', 'login.php');
                     <form action="api/clients/SendEmail.php?email=<?php echo $_GET['send-email']; ?>" method="POST">
                         <div class="modal__form-group">
                             <label for="header">Обращение</label>
-                            <input type="text" id="header" name="header">
+                            <input type="text" id="header" name="header" 
+                                value="Дорогие коллеги смотрите - ХУЙ!" style="width: 100%;">
                         </div>
                         <div class="modal__form-group">
                             <label for="main">Тело письма</label>
-                            <textarea id="main" name="main" rows="5"></textarea>
+                            <textarea id="main" name="main" rows="5" style="width: 100%;">Компания «ГЕЙ СЕКС» — это российский производитель натуральных продуктов из экологически чистого сырья. Мы перерабатываем и реализуем дикорастущие лесные ягоды с применением инновационных технологий сублимации, а также выпускаем снековую продукцию (кедровый орех и сушеные грибы).
+
+Мы работаем с 2012 года, но уже наладили взаимовыгодные партнёрские отношения с крупными российскими торговыми сетями: «Азбука Вкуса», «Магнит», «Звездный», «Лента», «Глобус» и другие. Нас ценят за высокое качество продукта и строгое соблюдение сроков. А мы ценим своих партнёров и всегда рады новым!
+
+Больше полезной информации о нашей компании и продукте вы найдете в презентации во вложении (либо по ссылке).</textarea>
                         </div>
                         <div class="modal__form-group">
                             <label for="footer">Футер</label>
-                            <input type="text" id="footer" name="footer">
+                            <textarea id="footer" name="footer" rows="4" style="width: 100%;">(3462) 77-40-59
+info@sg-trade.ru
+siberiangostinets.ru
+628406, РФ, ХМАО-Югра,
+г. Сургут, ул. Университетская, 4</textarea>
                         </div>
                         <div class="modal__form-actions">
                             <button type="submit" class="modal__btn modal__btn-primary">Отправить</button>
                             <button type="button" class="modal__btn modal__btn-secondary" data-micromodal-close>Отменить</button>
                         </div>
                     </form>
-
-                    <?php 
-                    if (isset($_GET['send-email']) && !empty($_GET['send-email'])) {
-                        
-                    }
-                    ?>
                 </main>
             </div>
         </div>

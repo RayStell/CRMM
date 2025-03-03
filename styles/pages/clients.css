@@ -706,6 +706,7 @@ td[data-email]:hover {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    line-height: 1.6;
     transition: all 0.3s ease;
 }
 
@@ -719,6 +720,7 @@ td[data-email]:hover {
 #send-email-modal .modal__form-group textarea {
     min-height: 120px;
     resize: vertical;
+    white-space: pre-line;
 }
 
 #send-email-modal .modal__form-actions {
@@ -755,6 +757,39 @@ td[data-email]:hover {
     background-color: #c82333;
 }
 
+/* Стили для форматирования текста письма */
+#send-email-modal #main {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-family: Arial, sans-serif;
+}
+
+#send-email-modal #header {
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+#send-email-modal #footer {
+    white-space: pre-wrap;
+    color: #666;
+    line-height: 1.6;
+}
+
+#send-email-modal .modal__form-group textarea,
+#send-email-modal .modal__form-group input {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#send-email-modal .modal__form-group textarea:focus,
+#send-email-modal .modal__form-group input:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 576px) {
     #send-email-modal .modal__form-actions {
@@ -764,5 +799,11 @@ td[data-email]:hover {
 
     #send-email-modal .modal__btn {
         width: 100%;
+    }
+
+    #send-email-modal .modal__form-group input,
+    #send-email-modal .modal__form-group textarea {
+        font-size: 13px;
+        padding: 8px;
     }
 }
