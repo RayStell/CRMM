@@ -15,7 +15,7 @@ function OutputProducts($products) {
                 <td>$price</td>
                 <td>$stock</td>
                 <td><a href='api/product/generateQR.php?id=$id'><i class='fa fa-qrcode'></i></a></td>
-                <td onclick=\"MicroModal.show('edit-modal')\"><i class='fa fa-pencil'></i></td>
+                <td onclick=\"editProduct($id, '" . htmlspecialchars($name, ENT_QUOTES) . "', '" . htmlspecialchars($description, ENT_QUOTES) . "', $price, $stock)\"><i class='fa fa-pencil'></i></td>
                 <td><a href='api/product/ProductDelete.php?id=$id'><i class='fa fa-trash'></i></a></td>
             </tr>";
     }

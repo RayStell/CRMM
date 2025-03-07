@@ -283,27 +283,23 @@ if (isset($_SESSION['search_status'])) {
           <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
             <header class="modal__header">
               <h2 class="modal__title" id="modal-1-title">
-                Редактировать клиента
+                Редактировать заказ
               </h2>
               <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
             <main class="modal__content" id="modal-1-content">
-                <form class="modal__form">
+                <form action="api/orders/EditOrders.php" method="POST" class="modal__form">
+                    <input type="hidden" id="edit_id" name="id">
                     <div class="modal__form-group">
-                        <label for="fullname">ФИО</label>
-                        <input type="text" id="fullname" name="fullname" required>
-                    </div>
-                    <div class="modal__form-group">
-                        <label for="email">Почта</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="modal__form-group">
-                        <label for="phone">Телефон</label>
-                        <input type="tel" id="phone" name="phone" required>
+                        <label for="edit_status">Статус заказа</label>
+                        <select class="main__select" name="status" id="edit_status">
+                            <option value="1">Активный</option>
+                            <option value="0">Неактивный</option>
+                        </select>
                     </div>
                     <div class="modal__form-actions">
-                        <button type="submit" class="modal__btn">Сохранить</button>
-                        <button type="button" class="modal__btn" data-micromodal-close>Отменить</button>
+                        <button type="submit" class="modal__btn modal__btn-primary">Сохранить</button>
+                        <button type="button" class="modal__btn modal__btn-secondary" data-micromodal-close>Отменить</button>
                     </div>
                 </form>
             </main>

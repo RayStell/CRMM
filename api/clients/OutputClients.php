@@ -80,7 +80,13 @@ function OutputClients($clients) {
                         <button type='submit' class='date-submit-btn'>Сформировать</button>
                     </form>
                 </td>
-                <td onclick=\"MicroModal.show('edit-modal')\"><i class='fa fa-pencil'></i></td>
+                <td onclick=\"MicroModal.show('edit-modal'); 
+                    document.getElementById('edit_id').value = '$id';
+                    document.getElementById('edit_name').value = '$name';
+                    document.getElementById('edit_email').value = '$email';
+                    document.getElementById('edit_phone').value = '$phone';\">
+                    <i class='fa fa-pencil'></i>
+                </td>
                 <td><a href='api/clients/ClientsDelete.php?id=$id'><i class='fa fa-trash'></i></a></td>
             </tr>";
     }

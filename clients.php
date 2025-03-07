@@ -218,18 +218,19 @@ AuthCheck('', 'login.php');
               <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
             <main class="modal__content" id="modal-1-content">
-                <form class="modal__form">
+                <form action="api/clients/EditClients.php" method="POST" class="modal__form">
+                    <input type="hidden" id="edit_id" name="id">
                     <div class="modal__form-group">
                         <label for="fullname">ФИО</label>
-                        <input type="text" id="fullname" name="fullname">
+                        <input type="text" id="edit_name" name="name">
                     </div>
                     <div class="modal__form-group">
                         <label for="email">Почта</label>
-                        <input type="email" id="email" name="email">
+                        <input type="email" id="edit_email" name="email">
                     </div>
                     <div class="modal__form-group">
                         <label for="phone">Телефон</label>
-                        <input type="tel" id="phone" name="phone">
+                        <input type="tel" id="edit_phone" name="phone">
                     </div>
                     <div class="modal__form-actions">
                         <button type="submit" class="modal__btn">Сохранить</button>

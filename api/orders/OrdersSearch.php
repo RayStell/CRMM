@@ -43,11 +43,10 @@ function OrdersSearch($params, $DB) {
         orders.total,
         GROUP_CONCAT(CONCAT(products.name,' ( ',order_items.quantity,'шт. : ',products.price,')') 
         SEPARATOR ', ') AS product_names,
-        CASE 
-            WHEN orders.status = '1' THEN 'Активный'
-            WHEN orders.status = '0' THEN 'Неактивный'
-        END AS status,
-        users.name AS admin_name
+        GROUP_CONCAT(products.id) AS product_ids,
+        orders.status,
+        users.name AS admin_name,
+        orders.client_id
     FROM
         orders
     JOIN
@@ -60,7 +59,7 @@ function OrdersSearch($params, $DB) {
         products ON order_items.product_id = products.id
     " . $whereClause . "
     GROUP BY
-        orders.id, clients.name, orders.order_date, orders.total, orders.status
+        orders.id, clients.name, orders.order_date, orders.total, orders.status, orders.client_id
     " . $orderBy . "
     LIMIT $per_page OFFSET $offset")->fetchAll();
 

@@ -219,15 +219,14 @@ require_once 'api/helpers/InputDefaultValue.php';
     <!-- Модальное окно редактирования товара -->
     <div class="modal micromodal-slide" id="edit-modal" aria-hidden="true">
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <div class="modal__container" role="dialog" aria-modal="true">
                 <header class="modal__header">
-                    <h2 class="modal__title" id="modal-1-title">
-                        Редактировать товар
-                    </h2>
+                    <h2 class="modal__title">Редактировать товар</h2>
                     <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                 </header>
-                <main class="modal__content" id="modal-1-content">
-                    <form class="modal__form">
+                <main class="modal__content">
+                    <form action="api/product/EditProduct.php" method="POST" class="modal__form">
+                        <input type="hidden" name="id" id="edit-id">
                         <div class="modal__form-group">
                             <label for="edit-name">Название</label>
                             <input type="text" id="edit-name" name="name" required>
@@ -246,7 +245,7 @@ require_once 'api/helpers/InputDefaultValue.php';
                         </div>
                         <div class="modal__form-actions">
                             <button type="submit" class="modal__btn modal__btn-primary">Сохранить</button>
-                            <button type="button" class="modal__btn modal__btn-secondary" data-micromodal-close>Отменить</button>
+                            <button type="button" class="modal__btn" data-micromodal-close>Отменить</button>
                         </div>
                     </form>
                 </main>
@@ -295,6 +294,17 @@ require_once 'api/helpers/InputDefaultValue.php';
 
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
+
+    <script>
+    function editProduct(id, name, description, price, quantity) {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-name').value = name;
+        document.getElementById('edit-description').value = description;
+        document.getElementById('edit-price').value = price;
+        document.getElementById('edit-quantity').value = quantity;
+        MicroModal.show('edit-modal');
+    }
+    </script>
 
 </body>
 </html> 
