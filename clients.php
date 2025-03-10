@@ -1,5 +1,9 @@
 <?php session_start();
 
+// ТЕх.поддержка
+// Пользователь : создание тикета, общение с тех.поддержкой, закрытие тикета.
+// Тех.поддержка : принятие тикета, общение с пользователем, закрытие тикета.
+
 if (isset($_GET['do']) && $_GET['do'] === 'logout') {
     require_once 'api/auth/LogoutUser.php';
     require_once 'api/DB.php';
@@ -26,6 +30,7 @@ AuthCheck('', 'login.php');
     <link rel="stylesheet" href="styles/pages/clients.css">
     <link rel="stylesheet" href="styles/modules/font-awesome-4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="styles/modules/micromodal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>CRM | Клиенты</title>
 </head>
 <body>
@@ -326,6 +331,28 @@ siberiangostinets.ru
             </div>
         </div>
     </div>
+    <button class="support__btn" id="support-btn"><i class="fa fa-headphones"></i> Поддержка</button>
+    <div class="support__btn-container" id="support-form">
+        <div class="support__header">
+            <h3>Техническая поддержка</h3>
+            <button type="button" class="support__close" id="support-close"><i class="fa fa-times"></i></button>
+        </div>
+        <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
+            <label for="support-type">Тип обращения</label>
+            <select id="support-type" name="support-type">
+                <option value="technical">Техническая неполадка</option>
+                <option value="CRM">Проблемы с CRM</option>
+            </select>
+            <label for="support-message">Текст обращения</label>
+            <textarea id="support-message" name="support-message"></textarea>
+            <label for="files">Прикрепить файл</label>
+            <div class="file-input-container">
+                <input type="file" name="files" id="files">
+                <div class="file-name" id="file-name"></div>
+            </div>
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
     <script>
@@ -343,6 +370,41 @@ siberiangostinets.ru
             url.searchParams.delete('send-email');
             window.history.replaceState({}, '', url);
         }
+    });
+    </script>
+    <script>
+    // Скрипт для отображения/скрытия формы поддержки
+    document.addEventListener('DOMContentLoaded', function() {
+        const supportBtn = document.getElementById('support-btn');
+        const supportForm = document.getElementById('support-form');
+        const supportClose = document.getElementById('support-close');
+        
+        supportBtn.addEventListener('click', function() {
+            supportForm.classList.toggle('active');
+        });
+        
+        supportClose.addEventListener('click', function() {
+            supportForm.classList.remove('active');
+        });
+        
+        // Закрытие формы при клике вне её
+        document.addEventListener('click', function(event) {
+            if (!supportForm.contains(event.target) && event.target !== supportBtn) {
+                supportForm.classList.remove('active');
+            }
+        });
+        
+        // Отображение имени выбранного файла
+        const fileInput = document.getElementById('files');
+        const fileName = document.getElementById('file-name');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+            } else {
+                fileName.textContent = '';
+            }
+        });
     });
     </script>
 </body>
