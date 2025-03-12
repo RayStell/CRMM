@@ -93,3 +93,10 @@ legend {
     padding: 0 16px;
     margin: 0 auto;
 }
+
+.user-name {
+    color: #333;
+    margin-left: auto;
+    padding: 10px 20px;
+    font-weight: 500;
+}

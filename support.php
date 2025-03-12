@@ -108,6 +108,25 @@ AuthCheck('', 'login.php');
             text-decoration: underline;
         }
         
+        .header__buttons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header__support {
+            margin-right: 15px;
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .header__support:hover {
+            background-color: #45a049;
+        }
+        
         @media (max-width: 768px) {
             .support-container {
                 margin: 20px;
@@ -132,16 +151,28 @@ AuthCheck('', 'login.php');
                 <?php 
                     require 'api/DB.php';
                     require_once 'api/clients/AdminName.php';
+                    require_once 'api/helpers/getUserType.php';
 
                     echo AdminName($_SESSION['token'], $DB);
+                    
+                    // Получаем тип пользователя
+                    $userType = getUserType($_SESSION['token']);
                 ?>
             </p>
             <ul class="header__links">
                 <li><a href="clients.php">Клиенты</a></li>
                 <li><a href="product.php">Товары</a></li>
                 <li><a href="orders.php">Заказы</a></li>
+                <?php
+                if ($userType === 'tech'){
+                    echo "<li><a href='tech.php'>Обращения пользователя</a></li>";
+                }
+                ?>
             </ul>
-            <a href="?do=logout" class="header__logout">Выйти</a>
+            <div class="header__buttons">
+                <a href="support.php" class="header__support">Техподдержка</a>
+                <a href="?do=logout" class="header__logout">Выйти</a>
+            </div>
         </div>
     </header>
 

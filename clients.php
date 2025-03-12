@@ -8,16 +8,37 @@ if (isset($_GET['do']) && $_GET['do'] === 'logout') {
     require_once 'api/auth/LogoutUser.php';
     require_once 'api/DB.php';
 
+    $DB = new PDO(
+        'mysql:host=localhost;dbname=crm;charset=utf8', 
+        'root', 
+        null, 
+        [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+    );
+
     LogoutUser('login.php', $DB, $_SESSION['token']);
 
     exit;
 }
 
+require_once 'api/DB.php';
+// Инициализация подключения к БД
+$DB = new PDO(
+    'mysql:host=localhost;dbname=crm;charset=utf8', 
+    'root', 
+    null, 
+    [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+);
+
 require_once 'api/auth/AuthCheck.php';
 require_once 'api/helpers/InputDefaultValue.php';
 require_once 'api/clients/ClientsSearch.php';
+require_once 'api/helpers/getUserType.php';
 
-AuthCheck('', 'login.php');
+// Передаем $DB в функцию AuthCheck
+AuthCheck('', 'login.php', $DB);
+
+// Получаем тип пользователя один раз
+$userType = getUserType($DB);
 
 ?>
 
@@ -38,16 +59,24 @@ AuthCheck('', 'login.php');
         <div class="container">
             <p class="header__admin">
                 <?php 
-                    require 'api/DB.php';
                     require_once 'api/clients/AdminName.php';
-
                     echo AdminName($_SESSION['token'], $DB);
+                    
+                    // Отображаем тип пользователя
+                    if ($userType) {
+                        echo " (Тип: " . htmlspecialchars($userType) . ")";
+                    }
                 ?>
             </p>
             <ul class="header__links">
+                
                 <li><a href="clients.php">Клиенты</a></li>
                 <li><a href="product.php">Товары</a></li>
                 <li><a href="orders.php">Заказы</a></li>
+                <?php 
+                    if (strtolower($userType) === 'tech'): ?>
+                    <li><a href="tech.php">Обращения пользователя</a></li>
+                <?php endif; ?>
             </ul>
             <a href="?do=logout" class="header__logout">Выйти</a>
         </div>
