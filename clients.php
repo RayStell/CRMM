@@ -1,44 +1,22 @@
 <?php session_start();
 
-// ТЕх.поддержка
-// Пользователь : создание тикета, общение с тех.поддержкой, закрытие тикета.
-// Тех.поддержка : принятие тикета, общение с пользователем, закрытие тикета.
+
+
 
 if (isset($_GET['do']) && $_GET['do'] === 'logout') {
     require_once 'api/auth/LogoutUser.php';
     require_once 'api/DB.php';
-
-    $DB = new PDO(
-        'mysql:host=localhost;dbname=crm;charset=utf8', 
-        'root', 
-        null, 
-        [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-    );
 
     LogoutUser('login.php', $DB, $_SESSION['token']);
 
     exit;
 }
 
-require_once 'api/DB.php';
-// Инициализация подключения к БД
-$DB = new PDO(
-    'mysql:host=localhost;dbname=crm;charset=utf8', 
-    'root', 
-    null, 
-    [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-);
-
 require_once 'api/auth/AuthCheck.php';
 require_once 'api/helpers/InputDefaultValue.php';
 require_once 'api/clients/ClientsSearch.php';
-require_once 'api/helpers/getUserType.php';
 
-// Передаем $DB в функцию AuthCheck
-AuthCheck('', 'login.php', $DB);
-
-// Получаем тип пользователя один раз
-$userType = getUserType($DB);
+AuthCheck('', 'login.php');
 
 ?>
 
@@ -51,7 +29,7 @@ $userType = getUserType($DB);
     <link rel="stylesheet" href="styles/pages/clients.css">
     <link rel="stylesheet" href="styles/modules/font-awesome-4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="styles/modules/micromodal.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="styles/modules/support.css">
     <title>CRM | Клиенты</title>
 </head>
 <body>
@@ -59,24 +37,26 @@ $userType = getUserType($DB);
         <div class="container">
             <p class="header__admin">
                 <?php 
+                    require 'api/DB.php';
                     require_once 'api/clients/AdminName.php';
+                    require_once 'api/helpers/getUserType.php';
+
                     echo AdminName($_SESSION['token'], $DB);
-                    
-                    // Отображаем тип пользователя
-                    if ($userType) {
-                        echo " (Тип: " . htmlspecialchars($userType) . ")";
-                    }
+                    $userType = getUserType($DB);
+                    echo " <span style='color: green'>($userType)</span>";
                 ?>
             </p>
             <ul class="header__links">
-                
                 <li><a href="clients.php">Клиенты</a></li>
                 <li><a href="product.php">Товары</a></li>
                 <li><a href="orders.php">Заказы</a></li>
-                <?php 
-                    if (strtolower($userType) === 'tech'): ?>
-                    <li><a href="tech.php">Обращения пользователя</a></li>
-                <?php endif; ?>
+                <?php
+                    require_once 'api/helpers/getUserType.php';
+                    $userType = getUserType($DB);
+                    if ($userType === 'tech') {
+                        echo '<li><a href="tech.php">Обращение пользователя</a></li>';
+                    }
+                ?>
             </ul>
             <a href="?do=logout" class="header__logout">Выйти</a>
         </div>
@@ -186,7 +166,7 @@ $userType = getUserType($DB);
 
                         ?>
                     </tbody>
-            </table>
+                </table>
             </div>
         </section>
     </main>
@@ -252,19 +232,42 @@ $userType = getUserType($DB);
               <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
             </header>
             <main class="modal__content" id="modal-1-content">
-                <form action="api/clients/EditClients.php" method="POST" class="modal__form">
-                    <input type="hidden" id="edit_id" name="id">
+                <?php
+                    if (isset($_GET['edit-user']) && !empty($_GET['edit-user'])) {
+                        $userId = (int)$_GET['edit-user'];
+                        $stmt = $DB->prepare("SELECT name, email, phone FROM clients WHERE id = ?");
+                        $stmt->execute([$userId]);
+                        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                    }
+
+                    // Сохраняем параметры поиска для формы
+                    $searchParams = '';
+                    if (isset($_GET['search_name'])) {
+                        $searchParams .= '&search_name=' . urlencode($_GET['search_name']);
+                    }
+                    if (isset($_GET['search'])) {
+                        $searchParams .= '&search=' . urlencode($_GET['search']);
+                    }
+                    if (isset($_GET['sort'])) {
+                        $searchParams .= '&sort=' . urlencode($_GET['sort']);
+                    }
+                    if (isset($_GET['page'])) {
+                        $searchParams .= '&page=' . urlencode($_GET['page']);
+                    }
+                ?>
+                <form class="modal__form" method="POST" action="api/clients/EditClient.php?<?php echo ltrim($searchParams, '&'); ?>">
+                    <input type="hidden" name="id" value="<?php echo $userId ?? ''; ?>">
                     <div class="modal__form-group">
                         <label for="fullname">ФИО</label>
-                        <input type="text" id="edit_name" name="name">
+                        <input type="text" id="fullname" name="name" value="<?php echo htmlspecialchars($user['name'] ?? ''); ?>">
                     </div>
                     <div class="modal__form-group">
                         <label for="email">Почта</label>
-                        <input type="email" id="edit_email" name="email">
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>">
                     </div>
                     <div class="modal__form-group">
                         <label for="phone">Телефон</label>
-                        <input type="tel" id="edit_phone" name="phone">
+                        <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>">
                     </div>
                     <div class="modal__form-actions">
                         <button type="submit" class="modal__btn">Сохранить</button>
@@ -332,109 +335,74 @@ $userType = getUserType($DB);
                     <form action="api/clients/SendEmail.php?email=<?php echo $_GET['send-email']; ?>" method="POST">
                         <div class="modal__form-group">
                             <label for="header">Обращение</label>
-                            <input type="text" id="header" name="header" 
-                                value="Дорогие коллеги смотрите - ХУЙ!" style="width: 100%;">
+                            <input type="text" id="header" name="header" value="Дорогие коллеги!">
                         </div>
                         <div class="modal__form-group">
                             <label for="main">Тело письма</label>
-                            <textarea id="main" name="main" rows="5" style="width: 100%;">Компания «ГЕЙ СЕКС» — это российский производитель натуральных продуктов из экологически чистого сырья. Мы перерабатываем и реализуем дикорастущие лесные ягоды с применением инновационных технологий сублимации, а также выпускаем снековую продукцию (кедровый орех и сушеные грибы).
+                            <textarea id="main" name="main" rows="5">Компания «Сибирский гостинец» - это российский производитель натуральных продуктов из экологически чистого сырья. Мы перерабатываем и реализуем дикорастущие лесные ягоды с применением инновационных технологий сублимации, а также выпускаем снековую продукцию (кедровый орех и сушеные грибы).
 
-Мы работаем с 2012 года, но уже наладили взаимовыгодные партнёрские отношения с крупными российскими торговыми сетями: «Азбука Вкуса», «Магнит», «Звездный», «Лента», «Глобус» и другие. Нас ценят за высокое качество продукта и строгое соблюдение сроков. А мы ценим своих партнёров и всегда рады новым!
+Мы работаем с 2012 года, но уже наладили взаимовыгодные партнёрские отношения с крупными российскими торговыми сетями: «Азбука Вкуса», «Бахетле», «Звездный», «Лэнд», «Табрис» и другие. Нас ценят за высокое качество продукта и строгое соблюдение сроков. А мы ценим своих партнеров и всегда рады новым!
 
-Больше полезной информации о нашей компании и продукте вы найдете в презентации во вложении (либо по ссылке).</textarea>
+Больше полезной информации о нашей компании и продукте вы найдете в презентации во вложении (либо по <a href="#">ссылке</a>).</textarea>
                         </div>
                         <div class="modal__form-group">
                             <label for="footer">Футер</label>
-                            <textarea id="footer" name="footer" rows="4" style="width: 100%;">(3462) 77-40-59
-info@sg-trade.ru
-siberiangostinets.ru
-628406, РФ, ХМАО-Югра,
-г. Сургут, ул. Университетская, 4</textarea>
+                            <input type="text" id="footer" name="footer" value="(3462) 77-40-59<br>
+<a href='mailto:info@ws-trade.ru' style='color: blue; text-decoration: underline;'>info@ws-trade.ru</a><br>
+<a href='https://сибирскийгостинец.рф' style='color: blue; text-decoration: underline;'>сибирскийгостинец.рф</a><br>
+628406, РФ, ХМАО-Югра,<br>
+г. Сургут, ул. Университетская, 4">
                         </div>
                         <div class="modal__form-actions">
                             <button type="submit" class="modal__btn modal__btn-primary">Отправить</button>
                             <button type="button" class="modal__btn modal__btn-secondary" data-micromodal-close>Отменить</button>
                         </div>
                     </form>
+
+                    <?php 
+                    if (isset($_GET['send-email']) && !empty($_GET['send-email'])) {
+                        
+                    }
+                    ?>
                 </main>
             </div>
         </div>
     </div>
-    <button class="support__btn" id="support-btn"><i class="fa fa-headphones"></i> Поддержка</button>
-    <div class="support__btn-container" id="support-form">
-        <div class="support__header">
-            <h3>Техническая поддержка</h3>
-            <button type="button" class="support__close" id="support-close"><i class="fa fa-times"></i></button>
-        </div>
-        <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
-            <label for="support-type">Тип обращения</label>
-            <select id="support-type" name="support-type">
-                <option value="technical">Техническая неполадка</option>
-                <option value="CRM">Проблемы с CRM</option>
-            </select>
-            <label for="support-message">Текст обращения</label>
-            <textarea id="support-message" name="support-message"></textarea>
-            <label for="files">Прикрепить файл</label>
-            <div class="file-input-container">
-                <input type="file" name="files" id="files">
-                <div class="file-name" id="file-name"></div>
-            </div>
-            <button type="submit">Отправить</button>
-        </form>
-    </div>
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
-    <script>
-    // Очищаем URL от параметра send-email при закрытии модального окна
-    document.querySelector('#send-email-modal .modal__close').addEventListener('click', function() {
-        let url = new URL(window.location.href);
-        url.searchParams.delete('send-email');
-        window.history.replaceState({}, '', url);
-    });
 
-    // Если модальное окно было открыто, очищаем URL после загрузки страницы
-    window.addEventListener('load', function() {
-        if (new URL(window.location.href).searchParams.has('send-email')) {
-            let url = new URL(window.location.href);
-            url.searchParams.delete('send-email');
-            window.history.replaceState({}, '', url);
-        }
-    });
-    </script>
-    <script>
-    // Скрипт для отображения/скрытия формы поддержки
-    document.addEventListener('DOMContentLoaded', function() {
-        const supportBtn = document.getElementById('support-btn');
-        const supportForm = document.getElementById('support-form');
-        const supportClose = document.getElementById('support-close');
-        
-        supportBtn.addEventListener('click', function() {
-            supportForm.classList.toggle('active');
-        });
-        
-        supportClose.addEventListener('click', function() {
-            supportForm.classList.remove('active');
-        });
-        
-        // Закрытие формы при клике вне её
-        document.addEventListener('click', function(event) {
-            if (!supportForm.contains(event.target) && event.target !== supportBtn) {
-                supportForm.classList.remove('active');
-            }
-        });
-        
-        // Отображение имени выбранного файла
-        const fileInput = document.getElementById('files');
-        const fileName = document.getElementById('file-name');
-        
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                fileName.textContent = this.files[0].name;
-            } else {
-                fileName.textContent = '';
-            }
-        });
-    });
-    </script>
+    <!-- техподдержка -->
+    <button class="support-btn" title="Техническая поддержка">
+        <i class="fa fa-question"></i>
+    </button>
+
+    <div class="support-create-ticket">
+        <div class="support__header">
+            <h3>Техническая поддержка</h3>
+            <button class="support__close" aria-label="Закрыть"><i class="fa fa-times"></i></button>
+        </div>
+        <form action="api/tickets/CreateTicket.php" method="POST">
+            <div class="form-group">
+                <label for="type">Тип обращения</label>
+                <select name="type" id="type" class="support-select" required>
+                    <option value="tech">Техническая неполадка</option>
+                    <option value="crm">Проблема с CRM</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="message">Текст обращения</label>
+                <textarea name="message" id="message" placeholder="Опишите вашу проблему..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="files">Прикрепить файлы</label>
+                <input type="file" name="files" id="files" multiple>
+            </div>
+            <button type="submit" class="support-submit">Отправить обращение</button>
+        </form>
+    </div>
+
+    <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+    <script defer src="scripts/initClientsModal.js"></script>
+    <script defer src="scripts/support.js"></script>
 </body>
 </html>

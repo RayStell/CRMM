@@ -1,0 +1,247 @@
+.support-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.support-btn i {
+    font-size: 24px;
+    transition: transform 0.3s ease;
+}
+
+.support-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.support-btn:hover i {
+    transform: scale(1.1);
+}
+
+.support-create-ticket {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    padding: 25px;
+    z-index: 998;
+    display: none;
+    animation: slideIn 0.3s ease-out;
+}
+
+.support-create-ticket.active {
+    display: block;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.support-create-ticket form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.support-create-ticket label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.support-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+}
+
+.support-select:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    outline: none;
+}
+
+.support-create-ticket textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.support-create-ticket textarea:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    outline: none;
+}
+
+.support-create-ticket input[type="file"] {
+    width: 100%;
+    padding: 10px 0;
+}
+
+.support-create-ticket input[type="file"]::file-selector-button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background: #f5f5f5;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.support-create-ticket input[type="file"]::file-selector-button:hover {
+    background: #e0e0e0;
+}
+
+.support-submit {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.support-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.support-submit:active {
+    transform: translateY(0);
+}
+
+.support-submit::before {
+    content: '\f1d8';
+    font-family: 'FontAwesome';
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+    .support-create-ticket {
+        width: calc(100% - 60px);
+        bottom: 90px;
+        right: 15px;
+        left: 15px;
+    }
+    
+    .support-btn {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .support-btn i {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .support-create-ticket {
+        width: calc(100% - 30px);
+        padding: 20px;
+    }
+    
+    .support-select,
+    .support-create-ticket textarea {
+        padding: 10px;
+    }
+    
+    .support-submit {
+        padding: 12px;
+    }
+}
+
+.support__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.support__header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+    font-weight: 600;
+}
+
+.support__close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: #f5f5f5;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.support__close i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.support__close:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.support__close:hover i {
+    transform: rotate(90deg);
+} 
