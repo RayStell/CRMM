@@ -18,8 +18,8 @@ echo "POST данные: ";
 var_dump($_POST);
 
 // Получаем данные из формы
-$type = $_POST['support-type'] ?? '';
-$message = $_POST['support-message'] ?? '';
+$type = $_POST['type'] ?? '';
+$message = $_POST['message'] ?? '';
 
 // Определяем ID клиента
 // Если пользователь авторизован, берем ID из сессии, иначе используем значение по умолчанию (например, 1)
@@ -30,29 +30,45 @@ echo "Сообщение: " . $message . "<br>";
 echo "ID клиента: " . $client_id . "<br>";
 
 // Проверяем, что все необходимые данные получены
-if (empty($message)) {
-    echo "Ошибка: Пустое сообщение";
+if (empty($message) || empty($type)) {
+    echo "Ошибка: Заполните все обязательные поля";
     exit;
 }
 
-// Загрузка файла, если он был прикреплен
+// Обработка загруженного файла
 $file_path = null;
-if (isset($_FILES['files']) && $_FILES['files']['error'] == 0) {
+if (isset($_FILES['files']) && $_FILES['files']['error'][0] != UPLOAD_ERR_NO_FILE) {
     $upload_dir = '../../uploads/tickets/';
+    $web_upload_dir = '/uploads/tickets/'; // Путь для веб-доступа
     
     // Создаем директорию, если она не существует
     if (!file_exists($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
+
+    $uploaded_files = [];
+    $files = $_FILES['files'];
     
-    $file_name = time() . '_' . $_FILES['files']['name'];
-    $file_path = $upload_dir . $file_name;
+    // Перебираем все загруженные файлы
+    for ($i = 0; $i < count($files['name']); $i++) {
+        if ($files['error'][$i] == UPLOAD_ERR_OK) {
+            $tmp_name = $files['tmp_name'][$i];
+            $original_name = $files['name'][$i];
+            
+            // Генерируем уникальное имя файла
+            $file_name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $original_name);
+            $server_path = $upload_dir . $file_name;
+            $web_path = $web_upload_dir . $file_name;
+            
+            // Перемещаем файл
+            if (move_uploaded_file($tmp_name, $server_path)) {
+                $uploaded_files[] = $web_path;
+            }
+        }
+    }
     
-    // Перемещаем загруженный файл
-    move_uploaded_file($_FILES['files']['tmp_name'], $file_path);
-    
-    // Сохраняем только относительный путь в БД
-    $file_path = 'uploads/tickets/' . $file_name;
+    // Объединяем пути к файлам через разделитель
+    $file_path = !empty($uploaded_files) ? implode('|', $uploaded_files) : null;
 }
 
 try {
@@ -67,6 +83,8 @@ try {
                 message TEXT NOT NULL,
                 clients INT NOT NULL,
                 admin INT,
+                status VARCHAR(50) DEFAULT 'waiting',
+                file_path TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ");
@@ -74,7 +92,8 @@ try {
     }
     
     // Подготавливаем и выполняем запрос на добавление тикета
-    $query = "INSERT INTO tickets (type, message, clients, admin) VALUES (:type, :message, :clients, :admin)";
+    $query = "INSERT INTO tickets (type, message, clients, admin, status, file_path) 
+              VALUES (:type, :message, :clients, :admin, :status, :file_path)";
     
     $stmt = $DB->prepare($query);
     
@@ -82,18 +101,16 @@ try {
         ':type' => $type,
         ':message' => $message,
         ':clients' => $client_id,
-        ':admin' => 1
+        ':admin' => 1,
+        ':status' => 'waiting',
+        ':file_path' => $file_path
     ];
     
     $result = $stmt->execute($params);
     
     if ($result) {
-        $lastId = $DB->lastInsertId();
-        echo "Тикет успешно создан с ID: " . $lastId;
-        
-        // Перенаправляем пользователя обратно с сообщением об успехе
-        // header('Location: ../../clients.php?success=ticket_created');
-        // exit;
+        header('Location: ../../clients.php?success=ticket_created');
+        exit;
     } else {
         echo "Ошибка при выполнении запроса. Информация:";
         print_r($stmt->errorInfo());

@@ -1034,3 +1034,44 @@ td[data-email]:hover {
     white-space: nowrap;
     padding: 3px 0;
 }
+
+.form__group {
+    margin-bottom: 20px;
+}
+
+.form__group input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form__group input[type="file"]:hover {
+    border-color: #4CAF50;
+    background-color: #f0f8f0;
+}
+
+.file-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.form__group input[type="file"]::file-selector-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.form__group input[type="file"]::file-selector-button:hover {
+    background-color: #45a049;
+}

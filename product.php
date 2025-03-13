@@ -313,28 +313,27 @@ require_once 'api/helpers/InputDefaultValue.php';
             <h3>Техническая поддержка</h3>
             <button class="support__close" aria-label="Закрыть"><i class="fa fa-times"></i></button>
         </div>
-        <form action="api/tickets/CreateTicket.php" method="POST">
+        <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data" class="support-form">
             <div class="form-group">
-                <label for="type">Тип обращения</label>
-                <select name="type" id="type" class="support-select" required>
+                <label for="support-type">Тип обращения</label>
+                <select name="type" id="support-type" class="support-select" required>
                     <option value="tech">Техническая неполадка</option>
                     <option value="crm">Проблема с CRM</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="message">Текст обращения</label>
-                <textarea name="message" id="message" placeholder="Опишите вашу проблему..." required></textarea>
+                <label for="support-message">Текст обращения</label>
+                <textarea name="message" id="support-message" placeholder="Опишите вашу проблему..." required></textarea>
             </div>
             <div class="form-group">
-                <label for="files">Прикрепить файлы</label>
-                <input type="file" name="files" id="files" multiple>
+                <label for="support-files">Прикрепить файлы</label>
+                <input type="file" name="files[]" id="support-files" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
             </div>
             <button type="submit" class="support-submit">Отправить обращение</button>
         </form>
     </div>
 
-    <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
-    <script defer src="scripts/initClientsModal.js"></script>
+    <link rel="stylesheet" href="styles/modules/support.css">
     <script defer src="scripts/support.js"></script>
 
     <script>

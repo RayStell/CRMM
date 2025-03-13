@@ -38,7 +38,7 @@ function OrdersSearch($params, $DB) {
     $orders = $DB->query(
     "SELECT
         orders.id,
-        clients.name,
+        clients.name as client_name,
         orders.order_date,
         orders.total,
         GROUP_CONCAT(CONCAT(products.name,' ( ',order_items.quantity,'шт. : ',products.price,')') 

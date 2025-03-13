@@ -448,6 +448,21 @@ if (isset($_SESSION['search_status'])) {
         </form>
     </div>
 
+    <!-- Добавляем модальное окно для просмотра файлов -->
+    <div class="modal micromodal-slide" id="file-preview-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container modal__container--large" role="dialog" aria-modal="true">
+                <header class="modal__header">
+                    <h2 class="modal__title">Просмотр файла</h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="file-preview-content">
+                    <!-- Контент будет добавлен динамически -->
+                </main>
+            </div>
+        </div>
+    </div>
+
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
     <script defer src="scripts/orders.js"></script>
@@ -457,6 +472,60 @@ if (isset($_SESSION['search_status'])) {
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-status').value = status;
         MicroModal.show('edit-modal');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация MicroModal
+        MicroModal.init({
+            openTrigger: 'data-micromodal-trigger',
+            closeTrigger: 'data-micromodal-close',
+            disableFocus: true,
+            disableScroll: true,
+            awaitOpenAnimation: true,
+            awaitCloseAnimation: true
+        });
+    });
+
+    function showFile(filePath, type) {
+        console.log('Opening file:', filePath, 'Type:', type);
+        const container = document.getElementById('file-preview-content');
+        container.innerHTML = '';
+
+        // Убираем начальный слеш, если он есть
+        filePath = filePath.replace(/^\//, '');
+
+        if (type === 'image') {
+            const img = document.createElement('img');
+            img.src = filePath;
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.objectFit = 'contain';
+            
+            img.onerror = function() {
+                console.error('Error loading image:', filePath);
+                container.innerHTML = '<p style="color: red;">Ошибка загрузки изображения</p>';
+            };
+            
+            img.onload = function() {
+                console.log('Image loaded successfully');
+            };
+            
+            container.appendChild(img);
+        } else if (type === 'pdf') {
+            const iframe = document.createElement('iframe');
+            iframe.src = filePath;
+            iframe.style.width = '100%';
+            iframe.style.height = '80vh';
+            iframe.style.border = 'none';
+            container.appendChild(iframe);
+        }
+
+        MicroModal.show('file-preview-modal', {
+            onShow: modal => console.log('Файл открыт для просмотра'),
+            onClose: modal => console.log('Просмотр файла закрыт'),
+            disableScroll: true,
+            disableFocus: true
+        });
     }
     </script>
 </body>

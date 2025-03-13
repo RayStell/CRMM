@@ -368,6 +368,38 @@ AuthCheck('', 'login.php');
             </div>
         </div>
     </div>
+    <div class="modal micromodal-slide" id="support-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+                <header class="modal__header">
+                    <h2 class="modal__title" id="modal-1-title">
+                        Обращение в техподдержку
+                    </h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="modal-1-content">
+                    <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
+                        <div class="form__group">
+                            <label for="type">Тип проблемы</label>
+                            <select name="type" id="type" required>
+                                <option value="tech">Техническая неполадка</option>
+                                <option value="crm">Проблема с CRM</option>
+                            </select>
+                        </div>
+                        <div class="form__group">
+                            <label for="message">Сообщение</label>
+                            <textarea name="message" id="message" required></textarea>
+                        </div>
+                        <div class="form__group">
+                            <label for="files">Прикрепить файлы</label>
+                            <input type="file" name="files[]" id="files" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+                        </div>
+                        <button type="submit" class="form__submit">Отправить</button>
+                    </form>
+                </main>
+            </div>
+        </div>
+    </div>
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
 
@@ -381,7 +413,7 @@ AuthCheck('', 'login.php');
             <h3>Техническая поддержка</h3>
             <button class="support__close" aria-label="Закрыть"><i class="fa fa-times"></i></button>
         </div>
-        <form action="api/tickets/CreateTicket.php" method="POST">
+        <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="type">Тип обращения</label>
                 <select name="type" id="type" class="support-select" required>
@@ -395,7 +427,7 @@ AuthCheck('', 'login.php');
             </div>
             <div class="form-group">
                 <label for="files">Прикрепить файлы</label>
-                <input type="file" name="files" id="files" multiple>
+                <input type="file" name="files[]" id="files" multiple>
             </div>
             <button type="submit" class="support-submit">Отправить обращение</button>
         </form>
