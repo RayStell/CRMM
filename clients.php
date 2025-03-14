@@ -400,41 +400,110 @@ AuthCheck('', 'login.php');
             </div>
         </div>
     </div>
-    <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
-    <script defer src="scripts/initClientsModal.js"></script>
-
-    <!-- техподдержка -->
-    <button class="support-btn" title="Техническая поддержка">
-        <i class="fa fa-question"></i>
-    </button>
-
     <div class="support-create-ticket">
         <div class="support__header">
             <h3>Техническая поддержка</h3>
             <button class="support__close" aria-label="Закрыть"><i class="fa fa-times"></i></button>
         </div>
-        <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="type">Тип обращения</label>
-                <select name="type" id="type" class="support-select" required>
-                    <option value="tech">Техническая неполадка</option>
-                    <option value="crm">Проблема с CRM</option>
-                </select>
+        <div class="support__tabs">
+            <button class="support__tab active" data-tab="create-ticket">Создать обращение</button>
+            <button class="support__tab" data-tab="my-tickets">Мои обращения</button>
+        </div>
+        <div class="support__content active" id="create-ticket">
+            <form action="api/tickets/CreateTicket.php" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="type">Тип обращения</label>
+                    <select name="type" id="type" class="support-select" required>
+                        <option value="tech">Техническая неполадка</option>
+                        <option value="crm">Проблема с CRM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Текст обращения</label>
+                    <textarea name="message" id="message" placeholder="Опишите вашу проблему..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="files">Прикрепить файлы</label>
+                    <input type="file" name="files[]" id="files" multiple>
+                </div>
+                <button type="submit" class="support-submit">Отправить обращение</button>
+            </form>
+        </div>
+        <div class="support__content" id="my-tickets">
+            <div class="my-tickets-container">
+                <!-- Здесь будут отображаться карточки обращений пользователя -->
+                <div class="loading-spinner">
+                    <i class="fa fa-spinner fa-spin"></i> Загрузка обращений...
+                </div>
             </div>
-            <div class="form-group">
-                <label for="message">Текст обращения</label>
-                <textarea name="message" id="message" placeholder="Опишите вашу проблему..." required></textarea>
+        </div>
+    </div>
+
+    <!-- Модальное окно для чата по обращению -->
+    <div class="modal micromodal-slide" id="ticket-chat-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-chat-title">
+                <header class="modal__header">
+                    <h2 class="modal__title" id="modal-chat-title">
+                        Чат по обращению #<span id="chat-ticket-id"></span>
+                    </h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="modal-chat-content">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Здесь будут сообщения чата -->
+                    </div>
+                    <form id="chat-form" class="chat-form">
+                        <input type="hidden" id="chat-ticket-id-input" name="ticket_id" value="">
+                        <div class="form-group">
+                            <textarea name="message" id="chat-message" placeholder="Введите сообщение..." required></textarea>
+                        </div>
+                        <div class="chat-form-actions">
+                            <button type="submit" class="chat-submit">Отправить как пользователь</button>
+                            <button type="button" class="chat-submit admin-message-btn">Отправить как администратор</button>
+                        </div>
+                    </form>
+                </main>
             </div>
-            <div class="form-group">
-                <label for="files">Прикрепить файлы</label>
-                <input type="file" name="files[]" id="files" multiple>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ответа клиенту -->
+    <div class="modal micromodal-slide" id="client-response-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-response-title">
+                <header class="modal__header">
+                    <h2 class="modal__title" id="modal-response-title">
+                        Ответ клиенту
+                    </h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="modal-response-content">
+                    <div class="chat-messages" id="client-chat-messages">
+                        <!-- Здесь будут сообщения чата -->
+                    </div>
+                    <form id="client-chat-form" class="chat-form">
+                        <input type="hidden" id="client-ticket-id-input" name="ticket_id" value="">
+                        <div class="form-group">
+                            <textarea name="message" id="client-chat-message" placeholder="Введите сообщение..." required></textarea>
+                        </div>
+                        <div class="chat-form-actions">
+                            <button type="submit" class="chat-submit">Отправить как администратор</button>
+                            <button type="button" class="chat-submit user-message-btn">Отправить как пользователь</button>
+                        </div>
+                    </form>
+                </main>
             </div>
-            <button type="submit" class="support-submit">Отправить обращение</button>
-        </form>
+        </div>
     </div>
 
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
     <script defer src="scripts/initClientsModal.js"></script>
     <script defer src="scripts/support.js"></script>
+
+    <!-- техподдержка -->
+    <button class="support-btn" title="Техническая поддержка">
+        <i class="fa fa-question"></i>
+    </button>
 </body>
 </html>

@@ -36,6 +36,7 @@ if ($userType !== 'tech') {
     <link rel="stylesheet" href="styles/pages/tech.css">
     <link rel="stylesheet" href="styles/modules/font-awesome-4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="styles/modules/micromodal.css">
+    <link rel="stylesheet" href="styles/modules/support.css">
     <title>CRM | Техподдержка</title>
 </head>
 <body>
@@ -200,7 +201,7 @@ if ($userType !== 'tech') {
                                 <i class='fa fa-calendar'></i> 
                                 " . date('d.m.Y H:i', strtotime($ticket['created_at'])) . "
                             </div>
-                            <button class='reply-btn' onclick='showReplyModal(" . $ticket['id'] . ", " . $ticket['clients'] . ")'><i class='fa fa-reply'></i> Ответить</button>
+                            <button class='reply-btn' onclick='openClientResponseModal(" . $ticket['id'] . ")'><i class='fa fa-reply'></i> Ответить</button>
                         </div>";
                     }
                 ?>
@@ -238,7 +239,7 @@ if ($userType !== 'tech') {
     </main>
 
     <!-- Модальное окно для ответа -->
-    <div class="modal micromodal-slide" id="reply-modal" aria-hidden="true">
+    <div class="modal micromodal-slide" id="client-response-modal" aria-hidden="true">
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
             <div class="modal__container" role="dialog" aria-modal="true">
                 <header class="modal__header">
@@ -246,16 +247,17 @@ if ($userType !== 'tech') {
                     <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                 </header>
                 <main class="modal__content">
-                    <form id="replyForm" onsubmit="sendReply(event)">
-                        <input type="hidden" id="ticket_id" name="ticket_id">
-                        <input type="hidden" id="user_id" name="user_id">
+                    <div class="chat-messages" id="client-chat-messages">
+                        <!-- Здесь будут сообщения чата -->
+                    </div>
+                    <form id="client-chat-form" class="chat-form">
+                        <input type="hidden" id="client-ticket-id-input" name="ticket_id" value="">
                         <div class="form-group">
-                            <label for="message">Сообщение</label>
-                            <textarea id="message" name="message" rows="4" required></textarea>
+                            <textarea name="message" id="client-chat-message" placeholder="Введите сообщение..." required></textarea>
                         </div>
-                        <div class="modal__footer">
-                            <button type="submit" class="modal__btn modal__btn-primary">Отправить</button>
-                            <button type="button" class="modal__btn" data-micromodal-close>Отмена</button>
+                        <div class="chat-form-actions">
+                            <button type="submit" class="chat-submit">Отправить как администратор</button>
+                            <button type="button" class="chat-submit user-message-btn">Отправить как пользователь</button>
                         </div>
                     </form>
                 </main>
@@ -279,37 +281,42 @@ if ($userType !== 'tech') {
     </div>
 
     <script defer src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+    <script src="scripts/admin.js"></script>
     <script>
+        // Инициализация модальных окон
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация MicroModal
-            MicroModal.init({
-                openTrigger: 'data-micromodal-trigger',
-                closeTrigger: 'data-micromodal-close',
-                disableFocus: true,
-                disableScroll: true,
-                awaitOpenAnimation: true,
-                awaitCloseAnimation: true
-            });
-
-            // Обработчик изменения статуса
-            document.querySelectorAll('.status-select').forEach(select => {
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.init({
+                    openTrigger: 'data-micromodal-trigger',
+                    closeTrigger: 'data-micromodal-close',
+                    disableFocus: true,
+                    disableScroll: true,
+                    awaitOpenAnimation: true,
+                    awaitCloseAnimation: true
+                });
+            }
+            
+            // Обработка изменения статуса тикета
+            const statusSelects = document.querySelectorAll('.status-select');
+            statusSelects.forEach(select => {
                 select.addEventListener('change', function() {
-                    const ticketId = this.dataset.ticketId;
+                    const ticketId = this.getAttribute('data-ticket-id');
                     const newStatus = this.value;
-                    const statusContainer = this.closest('.ticket-status-container');
-                    const statusSpan = statusContainer.querySelector('.ticket-status');
-
-                    fetch('api/tickets/UpdateStatus.php', {
+                    
+                    fetch('api/tickets/UpdateTicketStatus.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: 'ticket_id=' + ticketId + '&status=' + newStatus
+                        body: `ticket_id=${ticketId}&status=${newStatus}`
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             // Обновляем отображение статуса
+                            const statusSpan = this.nextElementSibling;
+                            statusSpan.className = `ticket-status ${newStatus}`;
+                            
                             const statusText = {
                                 'waiting': 'Ожидает',
                                 'work': 'В работе',
@@ -321,102 +328,29 @@ if ($userType !== 'tech') {
                                 'work': 'cog',
                                 'complete': 'check'
                             }[newStatus];
-
-                            // Обновляем класс и содержимое статуса
-                            statusSpan.className = 'ticket-status ' + newStatus;
-                            statusSpan.innerHTML = `<i class="fa fa-${statusIcon}"></i>${statusText}`;
                             
-                            // Если включен фильтр по статусу, обновляем страницу
-                            const urlParams = new URLSearchParams(window.location.search);
-                            if (urlParams.has('status') && urlParams.get('status') !== 'all') {
-                                location.reload();
-                            }
+                            statusSpan.innerHTML = `<i class="fa fa-${statusIcon}"></i> ${statusText}`;
                         } else {
-                            alert('Ошибка при обновлении статуса');
-                            // Возвращаем предыдущее значение
-                            select.value = statusSpan.className.split(' ')[1];
+                            alert('Ошибка при обновлении статуса: ' + (data.error || 'Неизвестная ошибка'));
                         }
                     })
                     .catch(error => {
                         console.error('Ошибка:', error);
                         alert('Ошибка при обновлении статуса');
-                        // Возвращаем предыдущее значение
-                        select.value = statusSpan.className.split(' ')[1];
                     });
                 });
             });
         });
-
+        
+        // Функция для отображения файла
         function showFile(filePath, type) {
-            console.log('Opening file:', filePath, 'Type:', type);
-            const container = document.getElementById('file-preview-content');
-            container.innerHTML = '';
-
-            // Убираем начальный слеш, если он есть
-            filePath = filePath.replace(/^\//, '');
-
             if (type === 'image') {
-                const img = document.createElement('img');
-                img.src = filePath;
-                img.style.maxWidth = '100%';
-                img.style.height = 'auto';
-                img.style.objectFit = 'contain';
-                
-                img.onerror = function() {
-                    console.error('Error loading image:', filePath);
-                    container.innerHTML = '<p style="color: red;">Ошибка загрузки изображения</p>';
-                };
-                
-                img.onload = function() {
-                    console.log('Image loaded successfully');
-                };
-                
-                container.appendChild(img);
+                MicroModal.show('file-preview-modal');
+                document.getElementById('file-preview-content').innerHTML = `<img src="${filePath}" alt="Превью файла">`;
             } else if (type === 'pdf') {
-                const iframe = document.createElement('iframe');
-                iframe.src = filePath;
-                iframe.style.width = '100%';
-                iframe.style.height = '80vh';
-                iframe.style.border = 'none';
-                container.appendChild(iframe);
+                MicroModal.show('file-preview-modal');
+                document.getElementById('file-preview-content').innerHTML = `<iframe src="${filePath}" width="100%" height="500px"></iframe>`;
             }
-
-            MicroModal.show('file-preview-modal', {
-                onShow: modal => console.log('Файл открыт для просмотра'),
-                onClose: modal => console.log('Просмотр файла закрыт'),
-                disableScroll: true,
-                disableFocus: true
-            });
-        }
-
-        function showReplyModal(ticketId, userId) {
-            document.getElementById('ticket_id').value = ticketId;
-            document.getElementById('user_id').value = userId;
-            MicroModal.show('reply-modal');
-        }
-
-        function sendReply(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-
-            fetch('api/tickets/AddMessage.php', {
-                method: 'POST',
-                body: new URLSearchParams(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    MicroModal.close('reply-modal');
-                    event.target.reset();
-                    alert('Ответ успешно отправлен');
-                } else {
-                    alert('Ошибка при отправке ответа');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                alert('Ошибка при отправке ответа');
-            });
         }
     </script>
 </body>
