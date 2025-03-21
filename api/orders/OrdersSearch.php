@@ -1,69 +1,84 @@
 <?php
 
-function OrdersSearch($params, $DB) {
-    $search = isset($params['search']) ? $params['search'] : '';
-    //по умолчанию и убыванию
-    $sort = isset($params['sort']) ? $params['sort'] : '0';
-    //цена и количество
-    $search_name = isset($params['search_name']) ? $params['search_name'] : '0';
-    $search_status = isset($_SESSION['search_status']) ? $_SESSION['search_status'] : 'all';
-    $search = strtolower($search);
+function OrdersSearch($GET, $DB) {
+    $per_page = 5; // Количество записей на странице
 
-    $orderBy = '';
-    if ($sort == '1') {
-        $orderBy = "ORDER BY $search_name ASC";
-    } elseif ($sort == '2') {
-        $orderBy = "ORDER BY $search_name DESC";
+    // Базовый запрос для подсчета общего количества записей
+    $count_query = "
+        SELECT COUNT(DISTINCT o.id) as total_count
+        FROM orders o
+        LEFT JOIN clients c ON o.client_id = c.id
+        LEFT JOIN users u ON o.admin = u.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN products pr ON oi.product_id = pr.id
+    ";
+
+    // Добавляем условия поиска если они есть
+    $conditions = [];
+    
+    if (isset($GET['search']) && !empty($GET['search'])) {
+        $search = $GET['search'];
+        if (isset($GET['search_name']) && $GET['search_name'] === 'client') {
+            $conditions[] = "c.name LIKE '%$search%'";
+        } elseif (isset($GET['search_name']) && $GET['search_name'] === 'admin') {
+            $conditions[] = "u.name LIKE '%$search%'";
+        }
     }
 
-    // Добавляем параметр для текущей страницы
-    $page = isset($params['page']) ? (int)$params['page'] : 1;
-    $per_page = 5; // Количество записей на странице
+    if (!empty($conditions)) {
+        $count_query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // Получаем общее количество записей
+    $total_count = $DB->query($count_query)->fetch(PDO::FETCH_ASSOC)['total_count'];
+    
+    // Вычисляем максимальное количество страниц
+    $max_pages = ceil($total_count / $per_page);
+    
+    // Проверяем и корректируем номер текущей страницы
+    $page = isset($GET['page']) ? (int)$GET['page'] : 1;
+    $page = max(1, min($page, $max_pages)); // Убеждаемся, что страница в допустимых пределах
+    
     $offset = ($page - 1) * $per_page;
 
-    // Формируем WHERE с учетом поиска только если поисковая строка не пустая
-    $whereClause = "";
-    if (!empty($search)) {
-        $whereClause = "WHERE (LOWER(clients.name) LIKE '%$search%' OR LOWER(products.name) LIKE '%$search%')";
+    // Основной запрос для получения данных
+    $query = "
+        SELECT 
+            o.id,
+            o.status,
+            o.total as total,
+            o.original_total,
+            o.promo_code,
+            o.order_date,
+            c.name as client_name,
+            u.name as admin_name,
+            p.discount,
+            GROUP_CONCAT(CONCAT(pr.name, ' (', oi.quantity, 'шт.)') SEPARATOR ', ') as product_names
+        FROM orders o
+        LEFT JOIN clients c ON o.client_id = c.id
+        LEFT JOIN users u ON o.admin = u.id
+        LEFT JOIN promotions p ON o.promo_code = p.code_promo
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN products pr ON oi.product_id = pr.id
+    ";
+
+    if (!empty($conditions)) {
+        $query .= " WHERE " . implode(" AND ", $conditions);
     }
 
-    // Добавляем условие статуса
-    if ($search_status == '0') {  // Неактивные заказы (status = 0)
-        $whereClause = $whereClause ? $whereClause . " AND orders.status = '0'" : "WHERE orders.status = '0'";
-    } elseif ($search_status == '1') {  // Активные заказы (status = 1)
-        $whereClause = $whereClause ? $whereClause . " AND orders.status = '1'" : "WHERE orders.status = '1'";
-    } 
-    // Для значения "0" (Все заказы) дополнительные условия не добавляются
+    $query .= " GROUP BY o.id";
 
-    $orders = $DB->query(
-    "SELECT
-        orders.id,
-        clients.name as client_name,
-        orders.order_date,
-        orders.total,
-        GROUP_CONCAT(CONCAT(products.name,' ( ',order_items.quantity,'шт. : ',products.price,')') 
-        SEPARATOR ', ') AS product_names,
-        GROUP_CONCAT(products.id) AS product_ids,
-        orders.status,
-        users.name AS admin_name,
-        orders.client_id
-    FROM
-        orders
-    JOIN
-        clients ON orders.client_id = clients.id
-    JOIN
-        users ON orders.admin = users.id
-    JOIN
-        order_items ON orders.id = order_items.order_id
-    JOIN
-        products ON order_items.product_id = products.id
-    " . $whereClause . "
-    GROUP BY
-        orders.id, clients.name, orders.order_date, orders.total, orders.status, orders.client_id
-    " . $orderBy . "
-    LIMIT $per_page OFFSET $offset")->fetchAll();
+    // Добавляем сортировку
+    if (isset($GET['sort']) && $GET['sort'] !== '0') {
+        $query .= " ORDER BY o.order_date " . ($GET['sort'] === '1' ? 'ASC' : 'DESC');
+    } else {
+        $query .= " ORDER BY o.order_date DESC";
+    }
 
-    return $orders;
+    // Добавляем LIMIT и OFFSET для пагинации
+    $query .= " LIMIT $per_page OFFSET $offset";
+
+    return $DB->query($query)->fetchAll();
 }
 
 ?>

@@ -45,6 +45,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //все товары из бд (нужны для последующего использования)
     $allProducts = $DB->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
 
+    //код акции (code_promo)
+    if (isset($_POST['promo']) && !empty($_POST['promo'])) {
+        $promo = $_POST['promo'];
+        $promoInfo = []; // информация о акции
+
+        // 1. получить информацию о акции и записать в promoInfo (по code_promo)
+        // 2. проверить активна ли акция (uses < max_uses, cancel_at < текущей даты)
+        $stmt = $DB->prepare("SELECT * FROM promotions WHERE code_promo = ?");
+        $stmt->execute([$promo]);
+        $promoInfo = $stmt->fetchAll();
+
+        if (empty($promoInfo)) {
+            $_SESSION['orders_error'] = 'Промокод не существует';
+            header('Location: ../../orders.php');
+            exit;
+        }
+
+        if ($promoInfo[0]['uses'] >= $promoInfo[0]['max_uses']) {
+            $_SESSION['orders_error'] = 'Акция закончена';
+            header('Location: ../../orders.php');
+            exit;
+        }
+
+        // Применяем скидку к общей сумме
+        $discount = $promoInfo[0]['discount'];
+        $total = $total * (1 - ($discount / 100));
+
+        // Увеличиваем счетчик использований промокода
+        $stmt = $DB->prepare("UPDATE promotions SET uses = uses + 1 WHERE code_promo = ?");
+        $stmt->execute([$promo]);
+    }
+
     $clientID = $formData['client'] === 'new' ? time() : $formData['client'];
 
     if ($formData['client'] === 'new') {

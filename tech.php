@@ -57,9 +57,10 @@ if ($userType !== 'tech') {
                 <li><a href="clients.php">Клиенты</a></li>
                 <li><a href="product.php">Товары</a></li>
                 <li><a href="orders.php">Заказы</a></li>
+                <li><a href="promotions.php">Акции</a></li>
                 <?php
                     if ($userType === 'tech') {
-                        echo '<li><a href="tech.php">Обращение пользователя</a></li>';
+                        echo '<li><a href="tech.php" class="active">Обращение пользователя</a></li>';
                     }
                 ?>
             </ul>
